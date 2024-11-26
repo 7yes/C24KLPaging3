@@ -3,6 +3,7 @@ package com.jesse.c24klpaging3.presentaion
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,7 +33,7 @@ import com.jesse.c24klpaging3.R
 import com.jesse.c24klpaging3.domain.CharacterModel
 
 @Composable
-fun HomeScreen(homeViewModel: HomeViewModel = hiltViewModel()) {
+fun HomeScreen(homeViewModel: HomeViewModel = hiltViewModel(), onClickLis:(CharacterModel)->Unit) {
 
     val characters = homeViewModel.characters.collectAsLazyPagingItems()
     //CharacterList(characters)
@@ -71,7 +72,7 @@ fun HomeScreen(homeViewModel: HomeViewModel = hiltViewModel()) {
         }
 
         else -> {
-            CharactersList(characters)
+            CharactersList(characters,onClickLis)
 
             if (characters.loadState.append is LoadState.Loading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -85,18 +86,26 @@ fun HomeScreen(homeViewModel: HomeViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun CharactersList(characters: LazyPagingItems<CharacterModel>) {
+fun CharactersList(
+    characters: LazyPagingItems<CharacterModel>,
+    onClickLis: (CharacterModel) -> Unit
+) {
     LazyColumn {
         items(characters.itemCount) {
             characters[it]?.let { currentItem ->
-                SmallItem(currentItem)
+                SmallItem(currentItem,onClickLis)
             }
         }
     }
 }
 
 @Composable
-fun SmallItem(currentItem: CharacterModel) {
+fun SmallItem(
+    currentItem: CharacterModel,
+    onClickLis: (CharacterModel) -> Unit
+) {
+    val color = if (currentItem.status == "Alive") Color.Green else Color.Red
+   // val context = LocalContext.current
     //Simpple option
 //    Box(modifier = Modifier
 //        .fillMaxWidth()
@@ -115,6 +124,9 @@ fun SmallItem(currentItem: CharacterModel) {
             .clip(RoundedCornerShape(24))
             .border(2.dp, Color.Green, shape = RoundedCornerShape(0, 24, 0, 24))
             .fillMaxWidth()
+            .clickable {
+                onClickLis(currentItem)
+            }
             .height(250.dp), contentAlignment = Alignment.BottomCenter
     ) {
         AsyncImage(
@@ -138,15 +150,16 @@ fun SmallItem(currentItem: CharacterModel) {
                     )
                 ),
             contentAlignment = Alignment.Center
-        ){
+        ) {
             Text(text = currentItem.name, color = Color.White, fontSize = 18.sp)
         }
-        Box(modifier = Modifier
-            .fillMaxWidth()
-            .height(74.dp),
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(74.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
-            Text(text = currentItem.status, color = Color.Green)
+            Text(text = currentItem.status, color = color, fontSize = 18.sp)
         }
     }
 }
